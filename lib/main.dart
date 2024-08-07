@@ -12,7 +12,7 @@ import '/screens/main_screen.dart';
 import '/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 
-String host = 'http://192.168.1.106:8000';
+String host = 'http://192.168.1.107:8000';
 Future<void> main() async {
   final authProvider = AdminProvider();
   await authProvider.loadUserData();

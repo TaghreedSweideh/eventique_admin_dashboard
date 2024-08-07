@@ -1,4 +1,5 @@
 class Vendor {
+  final int id;
   final String logoUrl;
   final String companyName;
   final String email;
@@ -15,6 +16,7 @@ class Vendor {
   final List<Map<String, String>> workHours;
 
   Vendor({
+    required this.id,
     required this.logoUrl,
     required this.companyName,
     required this.email,

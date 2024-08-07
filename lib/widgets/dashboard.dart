@@ -17,17 +17,11 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   bool _loadingsta = false;
+  bool _loadingCom = false;
   DateTime _selectedDate = DateTime.now();
-  String _selectedYear = '2023';
+  String _selectedYear = '2024';
   List<charts.Series<Revenue, String>> _chartData = [];
-
-  @override
-  void initState() {
-    super.initState();
-    fetchDataForYear(_selectedYear);
-    fetchStatistics();
-    fetchCompanies();
-  }
+  bool _isInit = true;
 
   Future<void> fetchStatistics() async {
     try {
@@ -60,10 +54,31 @@ class _DashboardState extends State<Dashboard> {
       setState(() {
         _loadingsta = true;
       });
-      await Provider.of<BusinessOverviewPro>(context, listen: false)
-          .dataForYear(year);
+      var revenueData =
+          await Provider.of<BusinessOverviewPro>(context, listen: false)
+              .dataForYear(year);
+
+      // Map the fetched data to _chartData
+      List<Revenue> data = revenueData.entries.map((entry) {
+        return Revenue(_monthName(int.parse(entry.key)), entry.value);
+      }).toList();
 
       setState(() {
+        _chartData = [
+          charts.Series<Revenue, String>(
+            id: 'Revenue',
+            colorFn: (Revenue revenue, int? index) {
+              if (index != null && index % 2 == 0) {
+                return charts.Color.fromHex(code: '#570E57');
+              } else {
+                return charts.Color.fromHex(code: '#570E57').darker;
+              }
+            },
+            domainFn: (Revenue revenue, _) => revenue.month,
+            measureFn: (Revenue revenue, _) => revenue.revenue,
+            data: data,
+          )
+        ];
         _loadingsta = false;
       });
     } catch (error) {
@@ -74,32 +89,95 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
+  String _monthName(int monthNumber) {
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return monthNames[monthNumber - 1];
+  }
+
   Future<void> fetchCompanies() async {
     try {
       setState(() {
-        _loadingsta = true;
+        _loadingCom = true;
       });
       await Provider.of<BusinessOverviewPro>(context, listen: false)
           .companiesRequests();
 
       setState(() {
-        _loadingsta = false;
+        _loadingCom = false;
       });
     } catch (error) {
       setState(() {
-        _loadingsta = false;
+        _loadingCom = false;
+      });
+      print(error);
+    }
+  }
+
+  Future<void> updateCompanyStatus(int id, bool status) async {
+    try {
+      setState(() {
+        _loadingCom = true;
+      });
+      await Provider.of<BusinessOverviewPro>(context, listen: false)
+          .updateCompanyStatus(id, status);
+      fetchCompanies();
+      setState(() {
+        _loadingCom = false;
+      });
+    } catch (error) {
+      setState(() {
+        _loadingCom = false;
       });
       print(error);
     }
   }
 
   @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    if (_isInit) {
+      fetchDataForYear(_selectedYear);
+      fetchStatistics();
+      fetchCompanies();
+      _isInit = false;
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Call async methods to fetch data
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await fetchDataForYear(_selectedYear);
+    await fetchStatistics();
+    await fetchCompanies();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final loadedStatistics =
-        Provider.of<BusinessOverviewPro>(context).statistics;
-    final companies =
-        Provider.of<BusinessOverviewPro>(context).getCompaniesRequests;
+        Provider.of<BusinessOverviewPro>(context, listen: false).statistics;
+    final companies = Provider.of<BusinessOverviewPro>(context, listen: false)
+        .getCompaniesRequests;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       color: Colors.white,
@@ -315,48 +393,459 @@ class _DashboardState extends State<Dashboard> {
                 ),
               ],
             ),
-            child: Expanded(
-              child: _loadingsta
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      itemCount: companies.length,
-                      itemBuilder: (context, index) {
-                        final request = companies[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: NetworkImage(request.logoUrl),
+            child: _loadingCom
+                ? const Center(child: CircularProgressIndicator(color: primary))
+                : companies.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No companies requests yet',
+                          style: TextStyle(
+                            color: primary,
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          title: Text(request.companyName),
-                          subtitle:
-                              Text('${request.email}\n${request.phoneNumber}'),
-                          isThreeLine: true,
-                          onTap: () => _showDetailsDialog(request, context),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.check,
-                                    color: Colors.green),
-                                onPressed: () {
-                                  // Handle accept request
-                                },
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: companies.length,
+                        itemBuilder: (context, index) {
+                          final request = companies[index];
+                          return InkWell(
+                            onTap: () {
+                              _showDetailsDialog(request, context);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(8.0),
+                              margin: EdgeInsets.symmetric(vertical: 5.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 2,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.close, color: Colors.red),
-                                onPressed: () {
-                                  // Handle reject request
-                                },
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  // Avatar
+                                  CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage:
+                                        NetworkImage(request.logoUrl),
+                                  ),
+
+                                  Text(
+                                    request.companyName,
+                                    style: TextStyle(
+                                      color: primary,
+                                      fontFamily: 'CENSCBK',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${request.email}',
+                                    style: TextStyle(
+                                      color: primary,
+                                      fontFamily: 'CENSCBK',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '0${request.phoneNumber}',
+                                    style: TextStyle(
+                                      color: primary,
+                                      fontFamily: 'CENSCBK',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  // Action Buttons
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.check,
+                                          color: secondary,
+                                          size: 25,
+                                        ),
+                                        onPressed: () {
+                                          updateCompanyStatus(request.id, true);
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.close,
+                                          color: primary,
+                                          size: 25,
+                                        ),
+                                        onPressed: () {
+                                          updateCompanyStatus(
+                                              request.id, false);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-            ),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showDetailsDialog(Vendor request, BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          title: Text(
+            request.companyName,
+            style: TextStyle(
+              color: primary,
+              fontFamily: 'CENSCBK',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: CircleAvatar(
+                    radius: 100,
+                    backgroundImage: NetworkImage(
+                      request.logoUrl,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Name: ',
+                      style: TextStyle(
+                        color: secondary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ' ${request.firstName} ${request.lastName}',
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Email: ',
+                      style: TextStyle(
+                        color: secondary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${request.email}',
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Phone:',
+                      style: TextStyle(
+                        color: secondary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ' ${request.phoneNumber}',
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Registration Number:',
+                      style: TextStyle(
+                        color: secondary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ' ${request.registrationNumber}',
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Location:',
+                          style: TextStyle(
+                            color: secondary,
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ' ${request.location}',
+                          style: TextStyle(
+                            color: onPrimary,
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'City:',
+                          style: TextStyle(
+                            color: secondary,
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ' ${request.city}',
+                          style: TextStyle(
+                            color: onPrimary,
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'Country:',
+                          style: TextStyle(
+                            color: secondary,
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ' ${request.country}',
+                          style: TextStyle(
+                            color: onPrimary,
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Description:',
+                      style: TextStyle(
+                        color: secondary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ' ${request.description}',
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Categories:',
+                      style: TextStyle(
+                        color: secondary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ' ${request.categoryIds.join(', ')}',
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Event Types:',
+                      style: TextStyle(
+                        color: secondary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ' ${request.eventTypeIds.join(', ')}',
+                      style: TextStyle(
+                        color: onPrimary,
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  'Work Hours:',
+                  style: TextStyle(
+                    color: secondary,
+                    fontFamily: 'CENSCBK',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: request.workHours
+                      .map((dayMap) {
+                        return dayMap.entries.map((entry) {
+                          return Text(
+                            '${entry.key}: ${entry.value}',
+                            style: TextStyle(
+                              color: onPrimary,
+                              fontFamily: 'CENSCBK',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        }).toList();
+                      })
+                      .expand((element) => element)
+                      .toList(),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                updateCompanyStatus(request.id, false);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Accept',
+                style: TextStyle(
+                  color: secondary,
+                  fontFamily: 'CENSCBK',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                updateCompanyStatus(request.id, true);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Reject',
+                style: TextStyle(
+                  color: primary,
+                  fontFamily: 'CENSCBK',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Close',
+                style: TextStyle(
+                  color: primary,
+                  fontFamily: 'CENSCBK',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -425,94 +914,5 @@ Container _buildContainer({
               ),
       ],
     ),
-  );
-}
-
-void _showDetailsDialog(Vendor request, BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: Colors.white,
-        title: Text(request.companyName),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 150,
-                backgroundImage: NetworkImage(
-                  request.logoUrl,
-                ),
-              ),
-              Row(
-                children: [
-                  Text('Name:'),
-                  Text(' ${request.firstName} ${request.lastName}'),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('Email: '),
-                  Text('${request.email}'),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('Phone:'),
-                  Text(' ${request.phoneNumber}'),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('Registration Number:'),
-                  Text(' ${request.registrationNumber}'),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('Location:'),
-                  Text(' ${request.location}'),
-                  Text('City:'),
-                  Text(' ${request.city}'),
-                  Text('Country:'),
-                  Text(' ${request.country}'),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('Description:'),
-                  Text(' ${request.description}'),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('Categories:'),
-                  Text(' ${request.categoryIds.join(', ')}'),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('Event Types:'),
-                  Text(' ${request.eventTypeIds.join(', ')}'),
-                ],
-              ),
-              Text('Work Hours:'),
-              // ...request.workHours.entries
-              //     .map((entry) => Text('${entry.key}: ${entry.value}'))
-              //     .toList(),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Close'),
-          ),
-        ],
-      );
-    },
   );
 }

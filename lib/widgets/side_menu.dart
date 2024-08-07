@@ -1,7 +1,10 @@
 import 'package:eventique_admin_dashboard/color.dart';
 import 'package:eventique_admin_dashboard/models/side_menu_model.dart';
+import 'package:eventique_admin_dashboard/providers/admin_provider.dart';
+import 'package:eventique_admin_dashboard/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 
 class SideMenu extends StatefulWidget {
   const SideMenu({super.key});
@@ -12,6 +15,26 @@ class SideMenu extends StatefulWidget {
 
 class _SideMenuState extends State<SideMenu> {
   int selectedIndex = 0;
+  bool _isLoading = false;
+
+  Future<void> logout() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      await Provider.of<AdminProvider>(context, listen: false).logout();
+      Navigator.of(context).popAndPushNamed(LoginScreen.routeName);
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _isLoading = false;
+      });
+      print(error);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +123,26 @@ class _SideMenuState extends State<SideMenu> {
                   );
                 }),
           ),
+          _isLoading
+              ? CircularProgressIndicator(
+                  color: primary,
+                )
+              : TextButton.icon(
+                  onPressed: () => logout(),
+                  icon: Icon(
+                    Icons.logout,
+                    color: Colors.grey,
+                  ),
+                  label: Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontFamily: 'CENSCBK',
+                      fontSize: 16,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
         ],
       ),
     );

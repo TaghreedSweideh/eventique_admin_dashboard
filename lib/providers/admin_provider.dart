@@ -111,10 +111,10 @@ class AdminProvider with ChangeNotifier {
 
       _loginToken = responseData['loggintoken'] ?? '';
       print('loginToken:$_loginToken');
-      _firebaseToken = responseData['firebaseToken'] ?? '';
-      print('firebaseToken:$_firebaseToken');
+      // _firebaseToken = responseData['firebaseToken'] ?? '';
+      // print('firebaseToken:$_firebaseToken');
       //dont forget to save the other data like id ,name ,and email
-
+      await StorageManager.updateUserData(loginToken: _loginToken);
       notifyListeners();
     } catch (error) {
       print(error.toString());
@@ -282,7 +282,7 @@ class AdminProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    final url = Uri.parse('$host/api/companies/logout');
+    final url = Uri.parse('$host/api/admin/logout');
     print(url);
     try {
       final response = await http.get(
