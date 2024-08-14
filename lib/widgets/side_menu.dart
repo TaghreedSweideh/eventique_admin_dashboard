@@ -3,11 +3,12 @@ import 'package:eventique_admin_dashboard/models/side_menu_model.dart';
 import 'package:eventique_admin_dashboard/providers/admin_provider.dart';
 import 'package:eventique_admin_dashboard/screens/login_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 class SideMenu extends StatefulWidget {
-  const SideMenu({super.key});
+  final Function(int) onMenuItemSelected;
+
+  const SideMenu({Key? key, required this.onMenuItemSelected}) : super(key: key);
 
   @override
   State<SideMenu> createState() => _SideMenuState();
@@ -43,10 +44,11 @@ class _SideMenuState extends State<SideMenu> {
       const MenuModel(icon: Icons.people, title: 'Customers'),
       const MenuModel(icon: Icons.add_box, title: 'Add To App'),
     ];
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomRight: Radius.circular(10),
           topRight: Radius.circular(10),
         ),
@@ -65,7 +67,7 @@ class _SideMenuState extends State<SideMenu> {
       ),
       child: Column(
         children: [
-          Text(
+          const Text(
             'EvenTique',
             style: TextStyle(
               color: primary,
@@ -74,7 +76,7 @@ class _SideMenuState extends State<SideMenu> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           Expanded(
@@ -93,9 +95,12 @@ class _SideMenuState extends State<SideMenu> {
                           : Colors.transparent,
                     ),
                     child: InkWell(
-                      onTap: () => setState(() {
-                        selectedIndex = index;
-                      }),
+                      onTap: () {
+                        setState(() {
+                          selectedIndex = index;
+                        });
+                        widget.onMenuItemSelected(index);
+                      },
                       child: Row(
                         children: [
                           Padding(
@@ -124,16 +129,16 @@ class _SideMenuState extends State<SideMenu> {
                 }),
           ),
           _isLoading
-              ? CircularProgressIndicator(
+              ? const CircularProgressIndicator(
                   color: primary,
                 )
               : TextButton.icon(
                   onPressed: () => logout(),
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.logout,
                     color: Colors.grey,
                   ),
-                  label: Text(
+                  label: const Text(
                     'Logout',
                     style: TextStyle(
                       fontFamily: 'CENSCBK',

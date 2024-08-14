@@ -1,3 +1,7 @@
+import 'package:eventique_admin_dashboard/providers/categories_event_type.dart';
+import 'package:eventique_admin_dashboard/providers/packages.dart';
+import 'package:eventique_admin_dashboard/screens/package_details.dart';
+
 import '/providers/admin_provider.dart';
 import '/providers/business_overview_provider.dart';
 import '/providers/theme_provider.dart';
@@ -12,7 +16,7 @@ import '/screens/main_screen.dart';
 import '/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 
-String host = 'http://192.168.1.107:8000';
+String host = 'http://192.168.1.104:8000';
 Future<void> main() async {
   final authProvider = AdminProvider();
   await authProvider.loadUserData();
@@ -41,7 +45,13 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider.value(
           value: BusinessOverviewPro(token),
-        )
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => Packages(token),
+        ),
+        ChangeNotifierProvider(
+          create: (ctx) => CategoriesAndTypes(token),
+        ),
       ],
       child: Consumer<AdminProvider>(
         builder: (ctx, auth, _) => MaterialApp(

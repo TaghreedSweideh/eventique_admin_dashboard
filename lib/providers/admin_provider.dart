@@ -94,6 +94,7 @@ class AdminProvider with ChangeNotifier {
 
       // Check for a valid response
       if (response.statusCode != 200) {
+        print(response.body);
         throw Exception('Failed to login');
       }
 
