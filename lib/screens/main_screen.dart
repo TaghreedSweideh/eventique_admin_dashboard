@@ -1,12 +1,14 @@
 import 'package:eventique_admin_dashboard/responsive.dart';
 import 'package:eventique_admin_dashboard/screens/add_to_app.dart';
+import 'package:eventique_admin_dashboard/screens/cusomers_page.dart';
 import 'package:eventique_admin_dashboard/widgets/dashboard.dart';
 import 'package:eventique_admin_dashboard/widgets/side_menu.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
   static const routeName = '/main-screen';
-  const MainScreen({super.key});
+  const MainScreen({super.key, required this.token});
+  final String token;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -21,12 +23,13 @@ class _MainScreenState extends State<MainScreen> {
 
     Widget _getSelectedScreen() {
       switch (_selectedIndex) {
-        case 1:
+        case 0:
           return Dashboard(); // Add the corresponding screen widget
-        case 2:
-          return AddToApp();
+          //  return CustomersPage(token: widget.token,);
+        case 1:
+          return CustomersPage(token: widget.token,);
         default:
-          return Dashboard();
+          return AddToApp();
       }
     }
 

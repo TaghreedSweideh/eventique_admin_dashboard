@@ -49,8 +49,8 @@ class _SideMenuState extends State<SideMenu> {
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.only(
-          bottomRight: Radius.circular(10),
-          topRight: Radius.circular(10),
+          // bottomRight: Radius.circular(10),
+          // topRight: Radius.circular(10),
         ),
         color: Colors.white,
         boxShadow: const [

@@ -22,7 +22,7 @@ class CategoriesAndTypes with ChangeNotifier {
       Uri.parse(apiUrl),
       headers: {
         'Accept': 'application/json',
-        'locale': 'en', 
+        'locale': 'en',
       },
     );
     if (response.statusCode == 200) {
@@ -43,44 +43,38 @@ class CategoriesAndTypes with ChangeNotifier {
     }
   }
 
-//   Future<void> addCategory(String name) async {
-//     print('i am in add category');
-//   String apiUrl = '$host/api/categories';
+  Future<void> addCategory(String name) async {
+    print('i am in add category');
+    print('token is $token');
+    String apiUrl = '$host/api/admin/categories';
 
-//   try {
-//     final response = await http.post(
-//       Uri.parse(apiUrl),
-//       headers: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json',
-//         'Authorization': 'Bearer $token',
-//         'locale': 'en',
-//       },
-//       body: jsonEncode({
-//         'name': name,
-//       }),
-//     );
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+          'locale': 'en',
+        },
+        body: jsonEncode({
+          'name': name,
+        }),
+      );
 
-//     if (response.statusCode == 200) { 
-//       print('Category added successfully');
-      
-//       final newCategoryData = jsonDecode(response.body);
-//       final newCategory = Category(
-//         id: newCategoryData['id'], 
-//         name: newCategoryData['name']
-//       );
-//       _categories.add(newCategory);
-//       notifyListeners();
-//     } else {
-//       print(response.body);
-//       throw Exception('Failed to add category');
-//     }
-//   } catch (error) {
-//     print('Error adding category: $error');
-//     throw error;
-//   }
-// }
-
+      if (response.statusCode == 200) {
+        print('Category added successfully');
+        fetchCategories();
+        notifyListeners();
+      } else {
+        print(response.body);
+        throw Exception('Failed to add category');
+      }
+    } catch (error) {
+      print('Error adding category: $error');
+      throw error;
+    }
+  }
 
   // Event Types.................................................
   List<EventType> _eventTypes = [];
@@ -115,44 +109,36 @@ class CategoriesAndTypes with ChangeNotifier {
     }
   }
 
-Future<void> addEventType(String name) async {
-    print('i am in add addEventType and i will add $name' );
+  Future<void> addEventType(String name) async {
+    print('i am in add addEventType and i will add $name');
     print(token);
-  String apiUrl = '$host/api/event-type';
+    String apiUrl = '$host/api/event-type';
 
-  try {
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        // 'Authorization': 'Bearer $token',
-        'locale': 'en',
-      },
-      body: jsonEncode({
-        'name': name.toString(),
-      }),
-    );
-
-    if (response.statusCode == 200) { 
-      print('addEventType added successfully');
-      
-      final newEventTypeData = jsonDecode(response.body);
-      final newEventType = EventType(
-        id: newEventTypeData['id'], 
-        name: newEventTypeData['name']
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          // 'Authorization': 'Bearer $token',
+          'locale': 'en',
+        },
+        body: jsonEncode({
+          'name': name.toString(),
+        }),
       );
-      _eventTypes.add(newEventType);
-      notifyListeners();
-    } else {
-      print(response.body);
-      throw Exception('Failed to add add event type');
+
+      if (response.statusCode == 200) {
+        print('addEventType added successfully');
+        fetchEventTypes();
+        notifyListeners();
+      } else {
+        print(response.body);
+        throw Exception('Failed to add add event type');
+      }
+    } catch (error) {
+      print('Error adding event type: $error');
+      throw error;
     }
-  } catch (error) {
-    print('Error adding event type: $error');
-    throw error;
   }
 }
-
-}
-

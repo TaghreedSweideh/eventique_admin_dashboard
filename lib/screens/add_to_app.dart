@@ -75,8 +75,8 @@ class _AddToAppState extends State<AddToApp> {
                   try {
                     if (entered == 'Category') {
                       print('i am in the if statement');
-                      // await Provider.of<CategoriesAndTypes>(context, listen: false)
-                      //     .addCategory(_textController.text);
+                      await Provider.of<CategoriesAndTypes>(context, listen: false)
+                          .addCategory(_textController.text);
                     } else {
                       await Provider.of<CategoriesAndTypes>(context,
                               listen: false)
@@ -181,9 +181,7 @@ class _AddToAppState extends State<AddToApp> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (ctx) => PackageDetailsScreen(
-                                            services: availablePackages[index]
-                                                    .packageServices ??
-                                                [],
+                                            
                                             newPrice: availablePackages[index]
                                                     .newPrice ??
                                                 100,

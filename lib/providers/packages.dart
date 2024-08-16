@@ -11,73 +11,103 @@ class Packages with ChangeNotifier {
   Packages(this.token);
 
   List<Package> _availablePackages = [];
+  List<OneService> _packageServices = [];
   List<OneService> _packagableServices = [];
   List<Package> get availablePackages => [..._availablePackages];
   List<OneService> get packagableServices => [..._packagableServices];
+  List<OneService> get packageServices => [..._packageServices];
 
   Future<void> fetchAvailablePackages() async {
-    final url = Uri.parse('$host/api/packages');
-    print('i am in fetchAvailablePackages');
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Accept': 'application/json',
-          'locale': 'en',
-        },
-      );
-      print(response.body);
-      final responseData = json.decode(response.body);
+  final url = Uri.parse('$host/api/packages');
+  print('I am in fetchAvailablePackages');
+  try {
+    final response = await http.get(url, headers: {
+      'Accept': 'application/json',
+      'locale': 'en',
+    });
+    print('Response: ${response.body}');
+    final responseData = json.decode(response.body);
+    print('Response Data: $responseData');
 
-      final packages = responseData['data'];
-      final List<Package> temp = [];
-      packages.forEach((package) {
-        List<OneService> fetchedServices = [];
-        if (package['services'] != null) {
-          package['services'].forEach((service) {
-            List<String> serviceImageUrls = [];
-            if (service['images'] != null) {
-              service['images'].forEach((image) {
-                serviceImageUrls.add(image['url']);
-              });
-            }
+    final packages = responseData['data'];
+    final List<Package> temp = [];
+    packages.forEach((package) {
+      print('Processing package: $package');
 
-            fetchedServices.add(OneService(
-              serviceId: service['id'],
-              categoryId: service['category_id'],
-              name: service['name'],
-              rating: (service['average_rating'] as num?)
-                  ?.toDouble(), // Proper type casting
-              vendorName: service['company_name'],
-              imgsUrl: serviceImageUrls,
-              price:
-                  (service['price'] as num).toDouble(), // Proper type casting
-              description: service['description'],
-            ));
-          });
-        }
-
-        temp.add(Package(
-          id: package['id'],
-          name: package['name'],
-          oldPrice:
-              (package['old_price'] as num).toDouble(), // Proper type casting
-          newPrice:
-              (package['new_price'] as num).toDouble(), // Proper type casting
-          packageServices: fetchedServices,
-        ));
-      });
-      print('this is temp packages lengthhhh:${temp.length}');
-      _availablePackages = temp;
-      notifyListeners();
-    } catch (error) {
-      print(error);
-      throw error;
-    }
+      // Only fetch package-level details
+      temp.add(Package(
+        id: package['id'],
+        name: package['name'],
+        oldPrice: (package['old_price'] as num).toDouble(),
+        newPrice: (package['new_price'] as num).toDouble(),
+        packageServices: [], // Leave services empty for now
+      ));
+    });
+    print('Temporary packages list length: ${temp.length}');
+    _availablePackages = temp;
+    notifyListeners();
+  } catch (error) {
+    print('Error occurred: $error');
+    throw error;
   }
+}
+  
+  Future<void> fetchServicesInPackage(int packageId) async {
+  print('I am in fetchServicesInPackage');
+  final url = Uri.parse('$host/api/packages/$packageId');
+  print(url);
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Accept': 'application/json',
+        'locale': 'en',
+      },
+    );
+    final responseData = json.decode(response.body);
+    print(response.body);
+    print(response.statusCode);
+
+    // Extract services from the package data
+    final packageData = responseData['data'];
+    final services = packageData['services'];
+    final List<OneService> temp = [];
+
+    services.forEach((service) {
+      // Extract image URLs from the images array
+      List<String> imageUrls = [];
+      if (service['images'] != null) {
+        service['images'].forEach((image) {
+          imageUrls.add(image['url']);
+        });
+      }
+
+      temp.add(OneService(
+        serviceId: service['id'],
+        categoryId: service['category_id'],
+        name: service['name'],
+        rating: service['average_rating'] != null
+            ? (service['average_rating'] as num).toDouble()
+            : null,
+        vendorName: service['company_name'],
+        imgsUrl: imageUrls, // Set the image URLs
+        price: (service['price'] as num).toDouble(),
+        description: service['description'],
+      ));
+    });
+
+    _packageServices = temp;
+    notifyListeners();
+  } catch (error) {
+    print(error);
+    throw error;
+  }
+}
+
+
 
   Future<void> fetchPackagableServices() async {
-    print('i am in fetchPackagableServices');
+    print('I am in fetchPackagableServices');
     final url = Uri.parse('$host/api/packages/services/packagable');
     print(url);
     try {
@@ -95,15 +125,25 @@ class Packages with ChangeNotifier {
       final List<OneService> temp = [];
 
       services.forEach((service) {
+        // Extract image URLs from the images array
+        List<String> imageUrls = [];
+        if (service['images'] != null) {
+          service['images'].forEach((image) {
+            imageUrls.add(image['url']);
+          });
+        }
+
         temp.add(OneService(
           serviceId: service['id'],
           categoryId: service['category_id'],
-          name: service['name']['en'],
-          rating: null,
-          vendorName: "no name", // Vendor name not available in response
-          imgsUrl: [], // No images in response
+          name: service['name'],
+          rating: service['average_rating'] != null
+              ? (service['average_rating'] as num).toDouble()
+              : null,
+          vendorName: service['company_name'],
+          imgsUrl: imageUrls, // Set the image URLs
           price: (service['price'] as num).toDouble(),
-          description: service['description']['en'],
+          description: service['description'],
         ));
       });
 
@@ -114,6 +154,7 @@ class Packages with ChangeNotifier {
       throw error;
     }
   }
+
 
 //   Future<void> deleteService(int packageId, int serviceId) async {
 //   print('I am in deleteService');

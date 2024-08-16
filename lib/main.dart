@@ -1,4 +1,5 @@
 import 'package:eventique_admin_dashboard/providers/categories_event_type.dart';
+import 'package:eventique_admin_dashboard/providers/customer_provider.dart';
 import 'package:eventique_admin_dashboard/providers/packages.dart';
 import 'package:eventique_admin_dashboard/screens/package_details.dart';
 
@@ -52,6 +53,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (ctx) => CategoriesAndTypes(token),
         ),
+        ChangeNotifierProvider(
+          create: (ctx) => CustomerProvider(token)
+        ),
+        
       ],
       child: Consumer<AdminProvider>(
         builder: (ctx, auth, _) => MaterialApp(
@@ -60,7 +65,7 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
-          home: authProvider.isAuthenticated ? MainScreen() : LoginScreen(),
+          home: authProvider.isAuthenticated ? MainScreen(token: token,) : LoginScreen(),
           debugShowCheckedModeBanner: false,
           routes: {
             LoginScreen.routeName: (ctx) => LoginScreen(),
@@ -68,7 +73,7 @@ class MyApp extends StatelessWidget {
             VerificationScreen.routeName: (ctx) => VerificationScreen(),
             VerificationForm.routeName: (ctx) => VerificationForm(),
             ForgetPasswordScreen.routeName: (ctx) => ForgetPasswordScreen(),
-            MainScreen.routeName: (ctx) => MainScreen()
+            MainScreen.routeName: (ctx) => MainScreen(token: token,)
           },
         ),
       ),
