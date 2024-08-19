@@ -26,211 +26,214 @@ class _CustomersPageState extends State<CustomersPage>
   List<User> _filteredUsers = [];
   List<Company> _filteredCompanies = [];
 
- void _showDetailsDialog(Company request, BuildContext context) {
-  final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
-  bool _isDeleting = false;
+  void _showDetailsDialog(Company request, BuildContext context) {
+    final customerProvider =
+        Provider.of<CustomerProvider>(context, listen: false);
+    bool _isDeleting = false;
 
-  Future<void> _deleteCompany() async {
-    setState(() {
-      _isDeleting = true;
-    });
-
-    try {
-      await customerProvider.deleteCompany(request.id!); // Assuming you have this method
-      Navigator.of(context).pop(); // Close the dialog on successful deletion
-    } catch (e) {
-      // Handle error, e.g., show a snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete company')),
-      );
-    } finally {
+    Future<void> _deleteCompany() async {
       setState(() {
-        _isDeleting = false;
+        _isDeleting = true;
       });
-    }
-  }
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        title: Text(
-          request.companyName,
-          style: const TextStyle(
-            fontFamily: 'CENSCBK',
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: primary, // Set color to primary
+      try {
+        await customerProvider
+            .deleteCompany(request.id!); // Assuming you have this method
+        Navigator.of(context).pop(); // Close the dialog on successful deletion
+      } catch (e) {
+        // Handle error, e.g., show a snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete company')),
+        );
+      } finally {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          title: Text(
+            request.companyName,
+            style: const TextStyle(
+              fontFamily: 'CENSCBK',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: primary, // Set color to primary
+            ),
           ),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Text(
-                    'Name: ',
-                    style: TextStyle(
-                      color: primary, // Set color to primary
-                      fontFamily: 'CENSCBK',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    ' ${request.firstName} ${request.lastName}',
-                    style: const TextStyle(
-                      color: primary, // Set color to primary
-                      fontFamily: 'CENSCBK',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text(
-                    'Email: ',
-                    style: TextStyle(
-                      color: primary, // Set color to primary
-                      fontFamily: 'CENSCBK',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '${request.email}',
-                    style: const TextStyle(
-                      color: primary, // Set color to primary
-                      fontFamily: 'CENSCBK',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text(
-                    'Phone:',
-                    style: TextStyle(
-                      color: primary, // Set color to primary
-                      fontFamily: 'CENSCBK',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    ' ${request.phoneNumber}',
-                    style: const TextStyle(
-                      color: primary, // Set color to primary
-                      fontFamily: 'CENSCBK',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Location:',
-                        style: TextStyle(
-                          color: primary, // Set color to primary
-                          fontFamily: 'CENSCBK',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Name: ',
+                      style: TextStyle(
+                        color: primary, // Set color to primary
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        ' ${request.loaction}',
-                        style: const TextStyle(
-                          color: primary, // Set color to primary
-                          fontFamily: 'CENSCBK',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    Text(
+                      ' ${request.firstName} ${request.lastName}',
+                      style: const TextStyle(
+                        color: primary, // Set color to primary
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Text(
-                        'City:',
-                        style: TextStyle(
-                          color: primary, // Set color to primary
-                          fontFamily: 'CENSCBK',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text(
+                      'Email: ',
+                      style: TextStyle(
+                        color: primary, // Set color to primary
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        ' ${request.city}',
-                        style: const TextStyle(
-                          color: primary, // Set color to primary
-                          fontFamily: 'CENSCBK',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    Text(
+                      '${request.email}',
+                      style: const TextStyle(
+                        color: primary, // Set color to primary
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Text(
-                        'Country:',
-                        style: TextStyle(
-                          color: primary, // Set color to primary
-                          fontFamily: 'CENSCBK',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text(
+                      'Phone:',
+                      style: TextStyle(
+                        color: primary, // Set color to primary
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        ' ${request.country}',
-                        style: const TextStyle(
-                          color: primary, // Set color to primary
-                          fontFamily: 'CENSCBK',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    Text(
+                      '0${request.phoneNumber}',
+                      style: const TextStyle(
+                        color: primary, // Set color to primary
+                        fontFamily: 'CENSCBK',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Location:',
+                          style: TextStyle(
+                            color: primary, // Set color to primary
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ' ${request.loaction}',
+                          style: const TextStyle(
+                            color: primary, // Set color to primary
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Text(
+                          'City:',
+                          style: TextStyle(
+                            color: primary, // Set color to primary
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ' ${request.city}',
+                          style: const TextStyle(
+                            color: primary, // Set color to primary
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Text(
+                          'Country:',
+                          style: TextStyle(
+                            color: primary, // Set color to primary
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ' ${request.country}',
+                          style: const TextStyle(
+                            color: primary, // Set color to primary
+                            fontFamily: 'CENSCBK',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          if (_isDeleting)
-            const Center(child: CircularProgressIndicator()) // Show loading indicator
-          else
+          actions: [
+            if (_isDeleting)
+              const Center(
+                  child: CircularProgressIndicator()) // Show loading indicator
+            else
+              TextButton(
+                onPressed: () {
+                  _deleteCompany(); // Call delete function
+                },
+                child: const Text('Delete',
+                    style: TextStyle(color: primary)), // Set color to primary
+              ),
             TextButton(
               onPressed: () {
-                _deleteCompany(); // Call delete function
+                Navigator.of(context).pop(); // Close the dialog
               },
-              child: const Text('Delete', style: TextStyle(color: primary)), // Set color to primary
+              child: const Text('Close'),
             ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: const Text('Close'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -367,15 +370,23 @@ class _CustomersPageState extends State<CustomersPage>
             TabBar(
               controller: _tabController,
               tabs: const [
-                Tab(text: 'All',),
+                Tab(
+                  text: 'All',
+                ),
                 Tab(text: 'Users'),
                 Tab(text: 'Company'),
               ],
               labelColor: primary,
               indicatorColor: primary,
               dividerColor: Colors.white,
-              labelStyle: TextStyle(fontFamily: 'CENSCBK',fontSize: 14,fontWeight: FontWeight.bold),
-              unselectedLabelStyle:  TextStyle(fontFamily: 'CENSCBK',fontSize: 14,fontWeight: FontWeight.bold),
+              labelStyle: TextStyle(
+                  fontFamily: 'CENSCBK',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold),
+              unselectedLabelStyle: TextStyle(
+                  fontFamily: 'CENSCBK',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold),
             ),
             Expanded(
               child: TabBarView(
@@ -460,7 +471,7 @@ class _CustomersPageState extends State<CustomersPage>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${company.phoneNumber}',
+                        '0${company.phoneNumber}',
                         style: const TextStyle(
                             fontFamily: 'CENSCBK',
                             // fontWeight: FontWeight.bold,
@@ -663,7 +674,7 @@ class _CustomersPageState extends State<CustomersPage>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${company.phoneNumber}',
+                            '0${company.phoneNumber}',
                             style: const TextStyle(
                                 fontFamily: 'CENSCBK',
                                 // fontWeight: FontWeight.bold,

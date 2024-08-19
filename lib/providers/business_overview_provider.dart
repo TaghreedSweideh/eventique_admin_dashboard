@@ -27,6 +27,34 @@ class BusinessOverviewPro with ChangeNotifier {
     return {..._statistics};
   }
 
+  Future<void> getTotalStatistics() async {
+    final url = Uri.parse('$host/api/admin/totalStatistics');
+    print(url);
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+      print(responseData);
+      if (responseData['Status'] == 'Failed') {
+        throw Exception(responseData['Error']);
+      }
+      _statistics['customers'] = responseData['user_count'].toString();
+      _statistics['companies'] = responseData['company_count'].toString();
+      _statistics['revenue'] = responseData['total_profit'].toString();
+      _statistics['events'] = responseData['events'].toString();
+      notifyListeners();
+    } catch (error) {
+      print(error.toString());
+      throw error;
+    }
+  }
+
   Future<void> getStatistics(String route, String date) async {
     final url = Uri.parse('$host/api/admin/$route');
     print(url);

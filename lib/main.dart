@@ -17,7 +17,7 @@ import '/screens/main_screen.dart';
 import '/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 
-String host = 'http://192.168.1.104:8000';
+String host = 'http://192.168.1.107:8000';
 Future<void> main() async {
   final authProvider = AdminProvider();
   await authProvider.loadUserData();
@@ -44,19 +44,22 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(
           value: authProvider,
         ),
-        ChangeNotifierProvider.value(
-          value: BusinessOverviewPro(token),
+        ChangeNotifierProxyProvider<AdminProvider, BusinessOverviewPro>(
+          create: (_) => BusinessOverviewPro(token),
+          update: (context, auth, previous) => BusinessOverviewPro(auth.token),
         ),
-        ChangeNotifierProvider(
-          create: (ctx) => Packages(token),
+        ChangeNotifierProxyProvider<AdminProvider, Packages>(
+          create: (_) => Packages(token),
+          update: (context, auth, previous) => Packages(auth.token),
         ),
-        ChangeNotifierProvider(
-          create: (ctx) => CategoriesAndTypes(token),
+        ChangeNotifierProxyProvider<AdminProvider, CategoriesAndTypes>(
+          create: (_) => CategoriesAndTypes(token),
+          update: (context, auth, previous) => CategoriesAndTypes(auth.token),
         ),
-        ChangeNotifierProvider(
-          create: (ctx) => CustomerProvider(token)
+        ChangeNotifierProxyProvider<AdminProvider, CustomerProvider>(
+          create: (_) => CustomerProvider(token),
+          update: (context, auth, previous) => CustomerProvider(auth.token),
         ),
-        
       ],
       child: Consumer<AdminProvider>(
         builder: (ctx, auth, _) => MaterialApp(
@@ -65,7 +68,11 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
-          home: authProvider.isAuthenticated ? MainScreen(token: token,) : LoginScreen(),
+          home: authProvider.isAuthenticated
+              ? MainScreen(
+                  token: token,
+                )
+              : LoginScreen(),
           debugShowCheckedModeBanner: false,
           routes: {
             LoginScreen.routeName: (ctx) => LoginScreen(),
@@ -73,7 +80,9 @@ class MyApp extends StatelessWidget {
             VerificationScreen.routeName: (ctx) => VerificationScreen(),
             VerificationForm.routeName: (ctx) => VerificationForm(),
             ForgetPasswordScreen.routeName: (ctx) => ForgetPasswordScreen(),
-            MainScreen.routeName: (ctx) => MainScreen(token: token,)
+            MainScreen.routeName: (ctx) => MainScreen(
+                  token: token,
+                )
           },
         ),
       ),

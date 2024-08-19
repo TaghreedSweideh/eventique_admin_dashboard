@@ -23,6 +23,25 @@ class _DashboardState extends State<Dashboard> {
   List<charts.Series<Revenue, String>> _chartData = [];
   bool _isInit = true;
 
+  Future<void> fetchTotalStatistics() async {
+    try {
+      setState(() {
+        _loadingsta = true;
+      });
+      await Provider.of<BusinessOverviewPro>(context, listen: false)
+          .getTotalStatistics();
+
+      setState(() {
+        _loadingsta = false;
+      });
+    } catch (error) {
+      setState(() {
+        _loadingsta = false;
+      });
+      print(error);
+    }
+  }
+
   Future<void> fetchStatistics() async {
     try {
       setState(() {
@@ -150,7 +169,7 @@ class _DashboardState extends State<Dashboard> {
     // TODO: implement didChangeDependencies
     if (_isInit) {
       fetchDataForYear(_selectedYear);
-      fetchStatistics();
+      fetchTotalStatistics();
       fetchCompanies();
       _isInit = false;
     }
@@ -167,7 +186,7 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> _initializeData() async {
     await fetchDataForYear(_selectedYear);
-    await fetchStatistics();
+    await fetchTotalStatistics();
     await fetchCompanies();
   }
 
